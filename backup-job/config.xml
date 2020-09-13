@@ -1,0 +1,46 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <assignedNode>master</assignedNode>
+  <canRoam>false</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command># Prepare for the backup
+rm -fr *
+for file in /jobs/
+do
+mkdir -p $BUILD_ID/jobs
+cp -R $JENKINS_HOME/jobs/* $BUILD_ID/jobs
+done
+  
+# Build archive and clean
+tar czf $BUILD_ID.tar.gz $BUILD_ID/
+cp      $BUILD_ID.tar.gz LATEST.tar.gz
+rm -fr  $BUILD_ID</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <com.google.jenkins.plugins.storage.GoogleCloudStorageUploader plugin="google-storage-plugin@1.5.1">
+      <credentialsId>GCP cert</credentialsId>
+      <uploads>
+        <com.google.jenkins.plugins.storage.ClassicUpload>
+          <bucketNameWithVars>gs://testjenkins/backup4</bucketNameWithVars>
+          <sharedPublicly>false</sharedPublicly>
+          <forFailedJobs>false</forFailedJobs>
+          <showInline>false</showInline>
+          <sourceGlobWithVars>*</sourceGlobWithVars>
+        </com.google.jenkins.plugins.storage.ClassicUpload>
+      </uploads>
+    </com.google.jenkins.plugins.storage.GoogleCloudStorageUploader>
+  </publishers>
+  <buildWrappers/>
+</project>
